@@ -6,7 +6,6 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const app = express();
-const PORT = 3000;
 
 // =============== إعدادات ===============
 const votesPath = path.join(__dirname, "votes.json");
@@ -119,8 +118,9 @@ app.post("/delete-vote", (req, res) => {
     return res.json({ success: false, message: "خطأ أثناء الحذف" });
   }
 });
-const PORT = process.env.PORT || 3000;
+
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin2025";
+const PORT = process.env.PORT || 3000;
 ...
 app.listen(PORT, () => {
   console.log(`✅ الخادم يعمل على http://localhost:${PORT}`);
