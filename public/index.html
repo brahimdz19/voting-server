@@ -1,374 +1,387 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>نظام التصويت - مبسط ومحسّن</title>
-<style>
-  :root{
-    --primary: #667eea;
-    --accent: #764ba2;
-    --glass: rgba(255,255,255,0.85);
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;font-family:"Segoe UI",Tahoma,Arial;
-    background: linear-gradient(135deg,var(--primary),var(--accent));
-    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
-    color:#222;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>نظام التصويت — صوتك يصنع الفرق</title>
+  <meta name="description" content="نظام تصويت بسيط وسريع — متوافق مع الخادم" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#74ebd5; --bg2:#ACB6E5;
+      --card:#ffffff; --muted:#6b7280;
+      --accent1:#0072ff; --accent2:#00c6ff;
+      --danger:#ff5252;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Cairo',sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#0f172a}
+    .wrap{max-width:1100px;margin:28px auto;padding:18px;display:grid;grid-template-columns:1fr 420px;gap:20px;align-items:start}
+    @media(max-width:980px){.wrap{grid-template-columns:1fr;padding:12px}}
+    /* Card */
+    .card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:0 10px 30px rgba(2,6,23,0.12)}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    header h1{font-size:20px;margin:0}
+    header p{margin:0;color:var(--muted);font-size:14px}
 
-  /* بطاقة */
-  .card{
-    width:100%;max-width:820px;background:var(--glass);
-    border-radius:16px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,0.25);
-    transform: translateY(0); transition: transform .35s;
-  }
-  .card:hover{ transform: translateY(-6px) }
+    /* form left */
+    .vote-form{display:grid;gap:14px}
+    label{font-weight:700;color:#0b1220;font-size:14px}
+    input[type="text"]{width:100%;padding:12px;border-radius:10px;border:1px solid #e6e9ef;font-size:15px}
+    /* options as cards */
+    .options{display:flex;gap:12px;flex-wrap:wrap}
+    .option{
+      flex:1 1 calc(50% - 12px);
+      min-width:140px;
+      background:#f8fafc;border-radius:12px;padding:14px;border:2px solid transparent;cursor:pointer;
+      transition:transform .18s,box-shadow .18s,border-color .18s;
+      display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+    }
+    .option:hover{transform:translateY(-6px);box-shadow:0 8px 20px rgba(2,6,23,0.08)}
+    .option.selected{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:white;border-color:rgba(255,255,255,0.08)}
+    .option .title{font-weight:700;font-size:16px}
+    .option .desc{font-size:13px;color:var(--muted)}
+    @media(max-width:520px){.option{flex:1 1 100%}}
 
-  h1{margin:0 0 10px;font-size:20px;color: #222}
-  p.lead{margin:0 0 18px;color:#444}
+    /* captcha */
+    .captcha{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .captcha .q{font-weight:800;font-size:20px;padding:8px 12px;border-radius:10px;background:#f1f5f9}
+    .captcha input{width:120px;padding:10px;border-radius:10px;border:1px solid #dbe7f6;font-weight:700;text-align:center;font-size:16px}
 
-  form{display:grid;gap:12px}
-  label{font-weight:600;color:#333;font-size:14px;text-align:right}
-  input[type="text"]{
-    width:100%;padding:10px;border-radius:8px;border:1px solid #e6e6e6;font-size:15px;
-  }
+    /* buttons */
+    .row{display:flex;gap:12px;align-items:center}
+    .btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:white;border:0;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:800;box-shadow:0 8px 24px rgba(2,6,23,0.12)}
+    .btn.secondary{background:#eef2ff;color:#0b1220;box-shadow:none;border:1px solid #e6e9ef}
+    .btn:active{transform:translateY(1px)}
 
-  .options{display:flex;gap:12px;justify-content:space-between;align-items:center}
-  .option{
-    flex:1;padding:12px;border-radius:10px;border:2px solid #eee;background:#fff;cursor:pointer;
-    display:flex;align-items:center;gap:10px;transition:all .2s;
-  }
-  .option:hover{transform:translateY(-4px);box-shadow:0 10px 20px rgba(0,0,0,0.08)}
-  .option.selected{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;border-color:transparent}
+    /* results / right column */
+    .stats{display:flex;flex-direction:column;gap:14px}
+    .stat{display:flex;flex-direction:column;gap:8px}
+    .stat .label{display:flex;justify-content:space-between;font-weight:700}
+    .barWrap{background:#eef2ff;border-radius:12px;padding:6px}
+    .bar{height:36px;border-radius:8px;width:0%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;transition:width .9s ease}
+    .bar.A{background:linear-gradient(90deg,#4361ee,#00c6ff)}
+    .bar.B{background:linear-gradient(90deg,#2dd4bf,#14b8a6)}
 
-  .row {display:flex;gap:10px}
-  .btn {
-    background:linear-gradient(90deg,var(--primary),var(--accent));color:white;border:none;padding:10px 16px;border-radius:10px;
-    cursor:pointer;font-weight:700;box-shadow:0 8px 18px rgba(102,126,234,0.25);
-  }
-  .btn.secondary{background:#eee;color:#333;box-shadow:none}
+    .votersList{margin-top:12px;max-height:320px;overflow:auto;padding-right:6px}
+    .voterItem{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:#fbfdff;margin-bottom:8px;border:1px solid #eef2ff;font-size:14px}
+    .voterItem .meta{color:var(--muted);font-size:12px}
 
-  .results{margin-top:18px}
-  .bar{height:36px;background:#f1f3f8;border-radius:10px;overflow:hidden;display:flex;align-items:center}
-  .fill{height:100%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;transition:width .6s}
+    /* admin */
+    .adminBox{margin-top:8px;padding:10px;border-radius:10px;background:linear-gradient(90deg,#fff7ed,#fff6f3);border:1px solid #fde3cf}
+    .adminBox input{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef}
+    .adminVoters{margin-top:10px}
 
-  .voters{margin-top:12px;text-align:right}
-  .voter{padding:8px 10px;border-radius:8px;background:#fff;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 6px 14px rgba(0,0,0,0.04)}
+    /* success modal */
+    .modalRoot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.4);z-index:60;display:none}
+    .modal{background:white;padding:18px;border-radius:12px;box-shadow:0 20px 50px rgba(2,6,23,0.2);text-align:center;max-width:420px;width:92%}
+    .confetti{position:fixed;pointer-events:none;z-index:70}
 
-  /* modal */
-  .modal-back{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);z-index:40}
-  .modal{background:white;padding:18px;border-radius:12px;max-width:520px;width:94%;box-shadow:0 20px 50px rgba(0,0,0,0.45)}
-  .modal h2{margin:0 0 8px}
-  .modal p{margin:0 0 12px;color:#555}
-
-  .confetti{position:fixed;pointer-events:none;z-index:60}
-
-  /* admin area small */
-  .admin-panel{margin-top:14px;padding:12px;background:linear-gradient(90deg,#fff9db,#fff2c2);border-radius:10px;border:1px solid #ffeaa7}
-  .danger{background:linear-gradient(90deg,#ff6b6b,#ff4d4d);}
-
-  @media (max-width:600px){
-    .options{flex-direction:column}
-    .option{width:100%}
-  }
-</style>
+    /* responsive tweaks */
+    @media(max-width:420px){
+      .wrap{padding:8px}
+      .bar{font-size:13px}
+      header h1{font-size:18px}
+    }
+  </style>
 </head>
 <body>
-  <div class="card" id="mainCard" aria-live="polite">
-    <h1>🗳️ نظام التصويت المحسّن</h1>
-    <p class="lead">اختر خيارك بسرعة — التقييم يتحدّث فورًا بعد كل تصويت.</p>
+  <div class="wrap">
+    <!-- left: voting form -->
+    <div class="card">
+      <header>
+        <div>
+          <h1>🗳️ شارك في التصويت</h1>
+          <p>اختر خيارك. صوتك مسجَّل بأمان على الخادم.</p>
+        </div>
+        <div style="text-align:left;color:var(--muted);font-size:13px">مستجيب — جميع الأجهزة</div>
+      </header>
 
-    <form id="voteForm">
-      <label for="name">👤 الاسم الكامل</label>
-      <input id="name" type="text" placeholder="مثال: محمد علي" autocomplete="off" />
+      <div class="vote-form">
+        <div>
+          <label>👤 الاسم الكامل</label>
+          <input id="name" type="text" placeholder="اكتب اسمك الكامل" autocomplete="off" />
+        </div>
 
-      <label>📋 اختر أحد الخيارين</label>
-      <div class="options" id="options">
-        <div class="option" data-val="A" onclick="pick(this)">
-          <input type="radio" name="choice" value="A" style="display:none" />
-          <div>
-            <strong>الخيار A</strong><div style="font-size:13px;color:#666">الوصف أو ملاحظة قصيرة</div>
+        <div>
+          <label>📋 اختر أحد الخيارات</label>
+          <div class="options" id="options">
+            <div class="option" data-value="A" onclick="choose(this)">
+              <div class="title">الخيار A — التوسع محلياً</div>
+              <div class="desc">التركيز أولاً على السوق المحلي</div>
+            </div>
+            <div class="option" data-value="B" onclick="choose(this)">
+              <div class="title">الخيار B — الانطلاق دولياً</div>
+              <div class="desc">البدء بالسوق الدولي مباشرة</div>
+            </div>
           </div>
         </div>
-        <div class="option" data-val="B" onclick="pick(this)">
-          <input type="radio" name="choice" value="B" style="display:none" />
-          <div>
-            <strong>الخيار B</strong><div style="font-size:13px;color:#666">الوصف أو ملاحظة قصيرة</div>
+
+        <div>
+          <label>🔒 التحقق الأمني (اجمع الأرقام)</label>
+          <div class="captcha">
+            <div class="q" id="captchaQ">0 + 0 = ؟</div>
+            <input id="captchaInput" type="text" inputmode="numeric" placeholder="النتيجة" />
+            <button class="btn secondary" type="button" onclick="generateCaptcha()">تجديد</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:6px">
+          <button class="btn" onclick="submitVote()">✓ تأكيد التصويت</button>
+          <button class="btn secondary" onclick="toggleAdminPanel()">⚙️ وضع المدير</button>
+        </div>
+
+        <div id="formAlert" style="display:none;margin-top:10px;padding:10px;border-radius:8px"></div>
+      </div>
+    </div>
+
+    <!-- right: stats & voters -->
+    <div>
+      <div class="card stats">
+        <div>
+          <h3 style="margin:0 0 6px">📈 النتائج الحالية</h3>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="flex:1">
+              <div class="stat">
+                <div class="label"><span>الخيار A</span><span id="percentA">0%</span></div>
+                <div class="barWrap"><div id="barA" class="bar A">0</div></div>
+              </div>
+            </div>
+            <div style="width:10px"></div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="stat">
+              <div class="label"><span>الخيار B</span><span id="percentB">0%</span></div>
+              <div class="barWrap"><div id="barB" class="bar B">0</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <h4 style="margin:0 0 8px">📋 قائمة المصوّتين (<span id="totalVoters">0</span>)</h4>
+          <div class="votersList" id="votersList">
+            <!-- عناصر المصوتين تظهر هنا -->
+          </div>
+
+          <!-- admin area -->
+          <div class="adminBox" id="adminBox" style="display:none">
+            <label style="font-weight:800;margin-bottom:6px">🔐 لوحة المدير</label>
+            <input id="adminPass" type="password" placeholder="أدخل كلمة مرور المدير" />
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" onclick="loginAdmin()">دخول</button>
+              <button class="btn secondary" onclick="logoutAdmin()">خروج</button>
+            </div>
+            <div class="adminVoters" id="adminVoters" style="margin-top:10px"></div>
           </div>
         </div>
       </div>
-
-      <label>🔒 تحقق أمني — أجب المسألة</label>
-      <div class="row" style="align-items:center;justify-content:space-between">
-        <div id="captchaQuestion" style="font-weight:700"></div>
-        <input id="captchaAnswer" type="text" placeholder="الجواب" style="width:120px;padding:8px;border-radius:8px;border:1px solid #ddd" />
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:12px">
-        <button type="button" class="btn" onclick="submitVote()">إرسال التصويت</button>
-        <button type="button" class="btn secondary" onclick="openAdmin()">وضع المدير</button>
-      </div>
-    </form>
-
-    <div class="results" aria-live="polite">
-      <h3>📈 النتائج الحالية</h3>
-
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>الخيار A <span id="percentA">0%</span></div>
-        <div style="width:65%"><div class="bar"><div id="barA" class="fill" style="width:0%;background:linear-gradient(90deg,var(--primary),var(--accent))">0</div></div></div>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-        <div>الخيار B <span id="percentB">0%</span></div>
-        <div style="width:65%"><div class="bar"><div id="barB" class="fill" style="width:0%;background:linear-gradient(90deg,#4cd137,#00b894)">0</div></div></div>
-      </div>
-
-      <div class="voters" id="votersWrap">
-        <h4 style="margin:12px 0 8px">📋 المصوتون (<span id="totalVoters">0</span>)</h4>
-        <div id="votersList"></div>
-      </div>
     </div>
   </div>
 
-  <!-- Modal دخول الموقع -->
-  <div id="entryModal" class="modal-back" style="display:flex">
+  <!-- success modal -->
+  <div class="modalRoot" id="modalRoot">
     <div class="modal">
-      <h2>مرحبًا 👋</h2>
-      <p>اضغط الدخول للدخول إلى صفحة التصويت. صوتك سيُسجّل بأمان.</p>
-      <div style="text-align:center;margin-top:12px">
-        <button class="btn" onclick="closeEntry()">دخول الموقع</button>
-      </div>
+      <h2>✅ شكرًا — تم تسجيل صوتك</h2>
+      <p>تم إضافة تصويتك بنجاح. يمكنك إغلاق هذه النافذة والمتابعة.</p>
+      <div style="margin-top:12px"><button class="btn" onclick="closeModal()">حسناً</button></div>
     </div>
   </div>
 
-  <!-- Modal نجاح -->
-  <div id="successModal" class="modal-back" style="display:none">
-    <div class="modal">
-      <h2>✅ تم تسجيل التصويت</h2>
-      <p>شكرًا لمشاركتك! تم تسجيل صوتك بنجاح.</p>
-      <div style="text-align:center">
-        <button class="btn" onclick="closeSuccess()">رائع</button>
-      </div>
-    </div>
-  </div>
+  <div id="confetti" class="confetti"></div>
 
-  <!-- Modal المدير -->
-  <div id="adminModal" class="modal-back" style="display:none">
-    <div class="modal">
-      <h2>🔒 دخول المدير</h2>
-      <p>أدخل كلمة مرور المدير لعرض لوحة الإدارة وحذف التصويتات.</p>
-      <input id="adminPass" type="password" placeholder="كلمة المرور" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:10px" />
-      <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn secondary" onclick="closeAdmin()">إلغاء</button>
-        <button class="btn" onclick="tryAdmin()">تسجيل الدخول</button>
-      </div>
-      <div id="adminArea" style="margin-top:12px;display:none">
-        <div class="admin-panel">
-          <strong>لوحة المدير</strong>
-          <p style="margin:8px 0 10px;color:#555">يمكنك حذف أي تصويت بالضغط على سلة الحذف.</p>
-          <div id="adminVoters"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <script>
+    // ====== STATE ======
+    let selectedOption = null;
+    let captchaAnswer = 0;
+    let isAdmin = false;
+    let votesCache = [];
 
-  <div id="confettiRoot" class="confetti"></div>
+    // ====== عناصر DOM ======
+    const optionsEl = document.getElementById('options');
+    const formAlert = document.getElementById('formAlert');
+    const modalRoot = document.getElementById('modalRoot');
+    const confettiRoot = document.getElementById('confetti');
 
-<script>
-/* ====== إعدادات ====== */
-const API_BASE = ""; // فارغ => نفس الخادم، أي "/vote" و"/votes"
-let captchaAnswer = 0;
-let votesCache = [];
-let adminLogged = false;
-
-/* ====== الدخول والـ CAPTCHA ====== */
-function closeEntry(){ document.getElementById('entryModal').style.display='none' }
-function generateCaptcha(){
-  const a = Math.floor(Math.random()*9)+1;
-  const b = Math.floor(Math.random()*9)+1;
-  captchaAnswer = a + b;
-  document.getElementById('captchaQuestion').textContent = `${a} + ${b} = ؟`;
-}
-generateCaptcha();
-
-/* ====== اختيار الخيار ====== */
-function pick(el){
-  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-  const radio = el.querySelector('input[type=radio]');
-  if(radio) radio.checked = true;
-}
-
-/* ====== تحميل النتائج من الخادم ====== */
-async function loadVotes(){
-  try{
-    const res = await fetch((API_BASE||"") + "/votes");
-    if(!res.ok) throw new Error("network");
-    const data = await res.json();
-    votesCache = Array.isArray(data) ? data : data.votes || [];
-    renderResults();
-  }catch(err){
-    console.error("loadVotes error",err);
-    // لا نظهر تنبيه مزعج كل مرة لكن يمكن اظهار صغير
-    // showToast("⚠️ لم يتم الاتصال بالخادم!");
-  }
-}
-
-/* ====== عرض النتائج والمصوتين ====== */
-function renderResults(){
-  const votes = votesCache || [];
-  const countA = votes.filter(v=>v.choice==='A').length;
-  const countB = votes.filter(v=>v.choice==='B').length;
-  const total = votes.length;
-  const percentA = total? Math.round((countA/total)*100) : 0;
-  const percentB = total? Math.round((countB/total)*100) : 0;
-
-  document.getElementById('percentA').textContent = percentA + '%';
-  document.getElementById('percentB').textContent = percentB + '%';
-  document.getElementById('barA').style.width = percentA + '%';
-  document.getElementById('barB').style.width = percentB + '%';
-  document.getElementById('barA').textContent = countA;
-  document.getElementById('barB').textContent = countB;
-  document.getElementById('totalVoters').textContent = total;
-
-  // قائمة المصوتين
-  const list = document.getElementById('votersList');
-  list.innerHTML = '';
-  votes.forEach((v, idx) => {
-    const div = document.createElement('div');
-    div.className = 'voter';
-    div.innerHTML = `<div style="text-align:right">${escapeHtml(v.name)} <div style="font-size:12px;color:#888">${v.timestamp||''}</div></div>
-                     <div style="display:flex;gap:8px;align-items:center">
-                       ${adminLogged? `<button class="btn danger" style="padding:6px 8px;font-size:13px" onclick="deleteVote(${idx})">حذف</button>` : ''}
-                     </div>`;
-    list.appendChild(div);
-  });
-
-  // admin view list
-  const adminV = document.getElementById('adminVoters');
-  if(adminV){
-    adminV.innerHTML = votes.map((v,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px;background:#fff;margin-bottom:6px;border-radius:6px">
-      <div style="text-align:right">${escapeHtml(v.name)} <div style="font-size:12px;color:#888">${v.timestamp||''}</div></div>
-      <div><button class="btn danger" style="padding:6px 8px" onclick="deleteVote(${i})">حذف</button></div>
-    </div>`).join('');
-  }
-}
-
-/* ====== إرسال تصويت ====== */
-async function submitVote(){
-  const name = document.getElementById('name').value.trim();
-  const choiceEl = document.querySelector('input[name="choice"]:checked');
-  const ans = parseInt(document.getElementById('captchaAnswer').value);
-
-  if(!name){ alert('الرجاء إدخال الاسم'); return; }
-  if(!choiceEl){ alert('الرجاء اختيار خيار'); return; }
-  if(ans !== captchaAnswer){ alert('تحقق خاطئ'); generateCaptcha(); return; }
-
-  // منع تكرار بالاسم في الواجهة قبل الإرسال
-  if(votesCache.some(v=>v.name.toLowerCase()===name.toLowerCase())){ alert('لقد قمت بالتصويت مسبقاً'); return; }
-
-  try{
-    const res = await fetch((API_BASE||"") + '/vote', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ name, choice: choiceEl.value, timestamp: new Date().toLocaleString('ar-DZ') })
-    });
-    const data = await res.json();
-    if(data.success){
-      showSuccess();
-      // إعادة تحميل النتائج من الخادم
-      await loadVotes();
-      // تأثير كونفيتي
-      burstConfetti();
-      // تفريغ الحقول
-      document.getElementById('name').value = '';
+    // ====== اختيار خيار ======
+    function choose(el){
       document.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
-      document.querySelectorAll('input[name="choice"]').forEach(i=>i.checked=false);
-      generateCaptcha();
-    } else {
-      alert(data.message || 'حدث خطأ أثناء الحفظ');
+      el.classList.add('selected');
+      selectedOption = el.dataset.value;
     }
-  }catch(err){
-    console.error('submitVote',err);
-    alert('⚠️ لم يتم الاتصال بالخادم!');
-  }
-}
 
-/* ====== حذف تصويت (يتطلب خادم يدعم endpoint) ====== */
-async function deleteVote(index){
-  if(!confirm('هل أنت متأكد من حذف هذا التصويت؟')) return;
-  const pass = prompt('أدخل كلمة مرور المدير لتنفيذ الحذف:');
-  if(!pass) return;
-
-  try{
-    const res = await fetch((API_BASE||"") + '/delete-vote', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ index, password: pass })
-    });
-    const data = await res.json();
-    if(data.success){
-      alert('✅ تم الحذف');
-      adminLogged = true; // حافظ على وضع المدير إن نجح
-      loadVotes();
-    } else {
-      alert(data.message || 'فشل الحذف');
+    // ====== CAPTCHA (جمع أعداد) ======
+    function generateCaptcha(){
+      const a = Math.floor(Math.random()*9)+1;
+      const b = Math.floor(Math.random()*9)+1;
+      captchaAnswer = a + b;
+      document.getElementById('captchaQ').textContent = `${a} + ${b} = ؟`;
+      document.getElementById('captchaInput').value = '';
     }
-  }catch(err){
-    console.error('deleteVote',err);
-    alert('⚠️ لم يتم الاتصال بالخادم!');
-  }
-}
+    generateCaptcha();
 
-/* ====== نافذة نجاح وتاثيرات ====== */
-function showSuccess(){ document.getElementById('successModal').style.display='flex' }
-function closeSuccess(){ document.getElementById('successModal').style.display='none' }
-
-function openAdmin(){ document.getElementById('adminModal').style.display='flex' }
-function closeAdmin(){ document.getElementById('adminModal').style.display='none'; document.getElementById('adminArea').style.display='none' }
-
-function tryAdmin(){
-  const pass = document.getElementById('adminPass').value;
-  if(!pass){ alert('أدخل كلمة المرور'); return; }
-  // نطلب من الخادم التحقق (يمكن أن يكون endpoint خاص)
-  fetch((API_BASE||"") + '/admin-check', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ password: pass })
-  }).then(r=>r.json()).then(data=>{
-    if(data.success){
-      adminLogged = true;
-      document.getElementById('adminArea').style.display = 'block';
-      document.getElementById('adminPass').value = '';
-      renderResults();
-    } else {
-      alert('كلمة المرور خاطئة');
+    // ====== عرض تنبيه بسيط ======
+    function showAlert(message, type='info'){
+      formAlert.style.display = 'block';
+      formAlert.style.background = (type==='error')? '#fdecea' : '#e6ffef';
+      formAlert.style.color = (type==='error')? '#7f1d1d' : '#064e3b';
+      formAlert.textContent = message;
+      setTimeout(()=>{ formAlert.style.display = 'none'; }, 4500);
     }
-  }).catch(()=>alert('فشل الاتصال بالخادم'));
-}
 
-/* ====== Confetti بسيط ====== */
-function burstConfetti(){
-  const root = document.getElementById('confettiRoot');
-  for(let i=0;i<40;i++){
-    const el = document.createElement('div');
-    el.style.position='absolute'; el.style.left = (20 + Math.random()*60) + '%';
-    el.style.top = '-10%'; el.style.width='10px'; el.style.height='10px';
-    el.style.background = ['#ff6b6b','#ffb86b','#6bcfff','#9b59b6','#2ecc71'][Math.floor(Math.random()*5)];
-    el.style.borderRadius='2px'; el.style.opacity='0.95';
-    el.style.transform = `translateY(0) rotate(${Math.random()*360}deg)`;
-    el.style.transition = 'transform 1.2s ease, top 1.2s ease, opacity 1.2s';
-    root.appendChild(el);
-    setTimeout(()=>{ el.style.top = (60 + Math.random()*30) + '%'; el.style.transform = 'translateY(50px) rotate(360deg)'; el.style.opacity='0'; }, 50 + i*10);
-    setTimeout(()=>el.remove(), 1500 + i*30);
-  }
-}
+    // ====== إرسال التصويت ======
+    async function submitVote(){
+      const name = document.getElementById('name').value.trim();
+      const captchaInput = document.getElementById('captchaInput').value.trim();
 
-/* ====== Helpers ====== */
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]) }
+      if(!name){ showAlert('⚠️ الرجاء إدخال الاسم الكامل', 'error'); return; }
+      if(!selectedOption){ showAlert('⚠️ الرجاء اختيار أحد الخيارات', 'error'); return; }
+      if(!captchaInput || isNaN(captchaInput) || Number(captchaInput) !== captchaAnswer){ showAlert('❌ إجابة التحقق غير صحيحة', 'error'); generateCaptcha(); return; }
 
-/* ====== التهيئة ====== */
-loadVotes();
-setInterval(loadVotes, 7000); // تحديث دوري
-</script>
+      // منع تكرار اسم محليًا بسرعة (التحقق النهائي في الخادم)
+      if(votesCache.some(v => v.name.toLowerCase() === name.toLowerCase())){ showAlert('⚠️ لقد قمت بالتصويت مسبقًا', 'error'); return; }
+
+      try{
+        const res = await fetch('/vote', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ name, choice: selectedOption, timestamp: new Date().toLocaleString() })
+        });
+        const data = await res.json();
+        if(data.success){
+          // نجاح: فتح المودال وتأثير الكونفيتي وإعادة تحميل
+          openModal();
+          burstConfetti();
+          generateCaptcha();
+          document.getElementById('name').value = '';
+          document.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+          selectedOption = null;
+          await loadVotes(); // إعادة تحميل النتائج
+        } else {
+          showAlert('❌ ' + (data.message || 'حدث خطأ أثناء الحفظ'), 'error');
+        }
+      }catch(err){
+        console.error(err);
+        showAlert('⚠️ لم يتم الاتصال بالخادم!', 'error');
+      }
+    }
+
+    // ====== تحميل وعرض التصويتات ======
+    async function loadVotes(){
+      try{
+        const res = await fetch('/votes');
+        const votes = await res.json();
+        votesCache = Array.isArray(votes) ? votes : (votes.votes||[]);
+        renderResults();
+      }catch(err){
+        console.error('loadVotes', err);
+      }
+    }
+
+    function renderResults(){
+      const votes = votesCache || [];
+      const countA = votes.filter(v => v.choice === 'A').length;
+      const countB = votes.filter(v => v.choice === 'B').length;
+      const total = Math.max(1, countA + countB);
+      const pctA = Math.round((countA/total)*100);
+      const pctB = Math.round((countB/total)*100);
+
+      document.getElementById('barA').style.width = pctA + '%';
+      document.getElementById('barA').textContent = countA;
+      document.getElementById('barB').style.width = pctB + '%';
+      document.getElementById('barB').textContent = countB;
+      document.getElementById('percentA').textContent = pctA + '%';
+      document.getElementById('percentB').textContent = pctB + '%';
+      document.getElementById('totalVoters').textContent = votes.length;
+
+      // قائمة المصوتين أسفل
+      const list = document.getElementById('votersList');
+      list.innerHTML = '';
+      votes.forEach((v, i) => {
+        const el = document.createElement('div');
+        el.className = 'voterItem';
+        el.innerHTML = `<div>
+                          <div style="font-weight:700">${escapeHtml(v.name)}</div>
+                          <div class="meta">${escapeHtml(v.timestamp || '')}</div>
+                        </div>
+                        <div style="min-width:80px;text-align:left;color:var(--muted)">${escapeHtml(v.choice)}</div>`;
+        list.appendChild(el);
+      });
+
+      // admin detailed list if logged in
+      const adminV = document.getElementById('adminVoters');
+      if(adminV){
+        adminV.innerHTML = '';
+        votes.forEach((v,i)=>{
+          const d = document.createElement('div');
+          d.style.display = 'flex'; d.style.justifyContent='space-between'; d.style.marginBottom='8px'; d.style.alignItems='center';
+          d.innerHTML = `<div>${escapeHtml(v.name)} <div style="font-size:12px;color:var(--muted)">${escapeHtml(v.timestamp||'')}</div></div>
+                         <div><button style="background:${'var(--danger)'};color:#fff;padding:6px 8px;border-radius:6px;border:0" onclick="deleteVote(${i})">حذف</button></div>`;
+          adminV.appendChild(d);
+        });
+      }
+    }
+
+    // ====== مدخل الإدارة ======
+    function toggleAdminPanel(){
+      const box = document.getElementById('adminBox');
+      box.style.display = (box.style.display==='none' || box.style.display==='') ? 'block' : 'none';
+    }
+
+    async function loginAdmin(){
+      const pass = document.getElementById('adminPass').value;
+      if(!pass){ showAlert('أدخل كلمة مرور المدير', 'error'); return; }
+      try{
+        const res = await fetch('/admin-check', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: pass })});
+        const data = await res.json();
+        if(data.success){
+          isAdmin = true;
+          document.getElementById('adminBox').style.display = 'block';
+          showAlert('✅ تم تسجيل الدخول كمدير', 'info');
+          await loadVotes();
+        } else {
+          showAlert('❌ كلمة المرور خاطئة', 'error');
+        }
+      }catch(err){ console.error(err); showAlert('⚠️ فشل الاتصال بالخادم', 'error') }
+    }
+
+    async function deleteVote(index){
+      const pass = prompt('أدخل كلمة مرور المدير لتأكيد الحذف:');
+      if(!pass) return;
+      try{
+        const res = await fetch('/delete-vote',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ index, password: pass })});
+        const data = await res.json();
+        if(data.success){
+          showAlert('✅ تم حذف التصويت', 'info');
+          await loadVotes();
+        } else {
+          showAlert('❌ ' + (data.message||'فشل الحذف'), 'error');
+        }
+      }catch(err){ console.error(err); showAlert('⚠️ فشل الاتصال بالخادم', 'error') }
+    }
+
+    // ====== مودال نجاح وكونفيتي بسيط ======
+    function openModal(){ modalRoot.style.display='flex' }
+    function closeModal(){ modalRoot.style.display='none' }
+    function burstConfetti(){
+      const colors = ['#ff6b6b','#ffd166','#6bcfff','#9b59b6','#2ecc71'];
+      for(let i=0;i<40;i++){
+        const el = document.createElement('div');
+        el.style.position='fixed'; el.style.left = (20 + Math.random()*60) + '%'; el.style.top='-10%';
+        el.style.width='10px'; el.style.height='10px'; el.style.background = colors[Math.floor(Math.random()*colors.length)];
+        el.style.borderRadius='2px'; el.style.opacity='0.95'; el.style.transform='rotate('+ (Math.random()*360) +'deg)';
+        el.style.transition='transform 1.2s ease, top 1.2s ease, opacity 1.2s';
+        confettiRoot.appendChild(el);
+        setTimeout(()=>{ el.style.top = (60 + Math.random()*30) + '%'; el.style.opacity='0'; el.style.transform='translateY(30px) rotate(360deg)'; }, 50 + i*10);
+        setTimeout(()=>el.remove(), 1600 + i*30);
+      }
+    }
+
+    // ====== Helpers ======
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]) }
+
+    // ====== init ======
+    loadVotes();
+    setInterval(loadVotes, 8000);
+  </script>
 </body>
 </html>

@@ -7,16 +7,17 @@ const cors = require("cors");
 
 const app = express();
 
-// =============== إعدادات ===============
+// =============== الإعدادات ===============
+const PORT = process.env.PORT || 3000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin2025"; // ← غيّرها من Render أو هنا
 const votesPath = path.join(__dirname, "votes.json");
-const ADMIN_PASSWORD = "admin2025"; // ← غيّرها لكلمة سر قوية خاصة بك فقط
 
 // =============== وسائط ===============
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// =============== تأكد من وجود الملف ===============
+// =============== تأكد من وجود ملف التصويتات ===============
 if (!fs.existsSync(votesPath)) {
   fs.writeFileSync(votesPath, "[]", "utf-8");
   console.log("🆕 تم إنشاء ملف votes.json الجديد");
@@ -38,12 +39,12 @@ function saveVotes(votes) {
   fs.writeFileSync(votesPath, JSON.stringify(votes, null, 2), "utf-8");
 }
 
-// =============== نقطة النهاية الرئيسية ===============
+// =============== الصفحة الرئيسية ===============
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// =============== إرجاع جميع التصويتات ===============
+// =============== جلب جميع التصويتات ===============
 app.get("/votes", (req, res) => {
   try {
     const votes = getVotes();
@@ -53,7 +54,7 @@ app.get("/votes", (req, res) => {
   }
 });
 
-// =============== استقبال تصويت جديد ===============
+// =============== إضافة تصويت جديد ===============
 app.post("/vote", (req, res) => {
   try {
     const { name, choice, timestamp } = req.body;
@@ -64,7 +65,7 @@ app.post("/vote", (req, res) => {
 
     const votes = getVotes();
 
-    // تحقق من عدم تصويت الاسم سابقًا
+    // تحقق من أن الاسم لم يصوّت مسبقًا
     const alreadyVoted = votes.some(
       (v) => v.name.toLowerCase() === name.toLowerCase()
     );
@@ -119,9 +120,7 @@ app.post("/delete-vote", (req, res) => {
   }
 });
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin2025";
-const PORT = process.env.PORT || 3000;
-...
+// =============== تشغيل الخادم ===============
 app.listen(PORT, () => {
   console.log(`✅ الخادم يعمل على http://localhost:${PORT}`);
 });
